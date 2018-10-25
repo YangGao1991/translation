@@ -23,7 +23,7 @@
 
 [YOLO](https://pjreddie.com/darknet/yolo/) 是一个实时有效的目标检测神经网络。
 
-在这篇文章中，我将阐述如何使用 Metal Performance Shaders 来将“简化版”YOLOv2 运行在 iOS 设备上。
+在这篇文章中，我将阐述如何使用 Metal Performance Shaders 来将“简化版” YOLOv2 运行在 iOS 设备上。
 
 在继续阅读之前，请先 [观看这个令人惊叹的 YOLOv2 介绍视频](https://www.youtube.com/watch?v=VOC3huqHrss)。
 
