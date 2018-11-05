@@ -13,7 +13,7 @@
  校对=
  定稿=
 
-在本文中，我们将深入讨论 Swift 4 中的面向协议编程。这是一个系列两篇文章中的第二篇。如果你还没有读过 [前一篇介绍文章](https://www.appcoda.com/protocol-oriented-programming/)，请在继续阅读本文之前阅读先阅读前一篇。
+在本文中，我们将深入讨论 Swift 4 中的面向协议编程。这是一个系列两篇文章中的第二篇。如果你还没有读过 [前一篇介绍文章](https://www.appcoda.com/protocol-oriented-programming/)，请在继续阅读本文之前先阅读前一篇。
 
 在本文中，我们将探讨为什么 Swift 被认为是一门“面向协议”的语言；对比面向协议编程（POP）和面向对象编程（OOP）；对比“值语义”和“引用语义”；讨论 local reasoning；用协议实现代理模式；用协议代替类型；使用协议多态性；重审我的面向协议的实际代码；最终讨论为什么我没有 100% 使用 POP 编程。
 
@@ -47,7 +47,7 @@ Swift 中的协议有其他语言都不支持的特点：[协议扩展](https://
 
 花一些时间阅览 [Swift 标准库](http://swiftdoc.org)，跟随链接查看所有类型、协议、操作符、全局变量、函数。一定要看几乎所有页面都会有的 “Inheritance” 一节，并点击 “VIEW PROTOCOL HIERARCHY ->” 链接。你将会看到很多协议，协议的定义，以及协议继承关系的图表。
 
-记住很重要的一点：大部分 iOS（以及 OSX）SDK 中的代码都是以类继承的层次结构实现的。我相信很多我们使用的核心框架仍然是用 [Objective-C](https://developer.apple.com/library/archive/documentation/General/Conceptual/DevPedia-CocoaCore/Cocoa.html)（以及一些 C++ 和 C）编写的，例如 `Fundation` 和 `UIKit`。拿 `UIKit` 中的 `UIbutton` 举例。利用 Apple 官方文档页面中的“继承自”链接，我们可以从叶节点 `UIButton` 一直沿着继承链向上查找到根节点 `NSObject` ： `UIButton` 到 `UIControl` 到 `UIView` 到 `UIResponder` 到 `NSObject`。可以形象表示为：
+记住很重要的一点：大部分 iOS（以及 OSX）SDK 中的代码都是以类继承的层次结构实现的。我相信很多我们使用的核心框架仍然是用 [Objective-C](https://developer.apple.com/library/archive/documentation/General/Conceptual/DevPedia-CocoaCore/Cocoa.html)（以及一些 C++ 和 C）编写的，例如 `Fundation` 和 `UIKit`。拿 `UIKit` 中的 `UIbutton` 举例。利用 Apple 官方文档页面中的“继承自”链接，我们可以从叶节点 `UIButton` 一直沿着继承链向上查找到根节点 `NSObject`：`UIButton` 到 `UIControl` 到 `UIView` 到 `UIResponder` 到 `NSObject`。可以形象表示为：
 
 ![](https://www.appcoda.com/wp-content/uploads/2018/03/UIButton-Inheritance.png)
 
@@ -116,7 +116,7 @@ Swift 语言的源代码是开源的。请快速浏览一遍 [下列函数](http
 public mutating func next() -> Any? {
     if index + 1 > count {
         index = 0
-        // ensure NO ivars of self are actually captured
+	// 确保没有 self 的成员变量被捕获
         let enumeratedObject = enumerable
         var localState = state
         var localObjects = objects
@@ -126,17 +126,17 @@ public mutating func next() -> Any? {
             return withUnsafeMutablePointer(to: &localState) { (statePtr: UnsafeMutablePointer<NSFastEnumerationState>) -> (Int, Bool) in
                 let result = enumeratedObject.countByEnumerating(with: statePtr, objects: buffer, count: 16)
                 if statePtr.pointee.itemsPtr == buffer {
-                    // Most cocoa classes will emit their own inner pointer buffers instead of traversing this path. Notable exceptions include NSDictionary and NSSet
-                    return (result, true)
+		    // 大多数 cocoa 类会返回它们自己的内部指针缓存，不使用默认的路径获取值。也有例外的情况，比如 NSDictionary 和 NSSet。
+		    return (result, true)
                 } else {
-                    // this is the common case for things like NSArray
-                    return (result, false)
+                    // 这里是通常情形，比如 NSArray。
+		    return (result, false)
                 }
             }
         }
         
-        state = localState // restore the state value
-        objects = localObjects // copy the object pointers back to the self storage
+        state = localState // 重置 state 的值
+        objects = localObjects // 将对象指针拷贝回 self 
         
         if count == 0 { return nil }
     }
@@ -197,73 +197,50 @@ var delegate: LogoDownloaderDelegate?
 
 ```
 protocol Top {
-
     var protocolName: String { get }
-
 }
 
 protocol Middle: Top {
-
-    
 
 }
 
 protocol Bottom: Middle {
 
-    
-
 }
 
 struct TopStruct : Top {
-
     var protocolName: String = "TopStruct"
-
 }
 
 struct MiddleStruct : Middle {
-
     var protocolName: String = "MiddleStruct"
-
 }
 
 struct BottomStruct : Bottom {
-
     var protocolName: String = "BottomStruct"
-
 }
 
 let top = TopStruct()
-
 let middle = MiddleStruct()
-
 let bottom = BottomStruct()
 
 var topStruct: Top
-
 topStruct = bottom
-
 print("\(topStruct)\n")
-
-// prints "BottomStruct(protocolName: "BottomStruct")"
+// 输出 "BottomStruct(protocolName: "BottomStruct")"
 
 topStruct = middle
-
 print("\(topStruct)\n")
-
-// prints "MiddleStruct(protocolName: "MiddleStruct")"
+// 输出 "MiddleStruct(protocolName: "MiddleStruct")"
 
 topStruct = top
-
 print("\(topStruct)\n")
-
-// prints "TopStruct(protocolName: "TopStruct")"
+// 输出 "TopStruct(protocolName: "TopStruct")"
 
 let protocolStructs:[Top] = [top,middle,bottom]
 
 for protocolStruct in protocolStructs {
-
     print("\(protocolStruct)\n")
-
 }
 ```
 
@@ -308,22 +285,15 @@ BottomStruct(protocolName: "BottomStruct")
 ```
 protocol SimpleViewWithBorder {}
 
-// SAFETY: Constrain "addBorder" only to UIViews.
-
+// 安全的："addBorder" 方法只会被添加到 UIView 的实例。
 extension SimpleViewWithBorder where Self : UIView {
-
     func addBorder() -> Void {
-
         layer.borderColor = UIColor.green.cgColor
-
         layer.borderWidth = 10.0
-
     }
-
 }
 
 class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
-
 }
 ```
 
@@ -331,13 +301,9 @@ class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
 
 ```
 @IBAction func addViewButtonTapped(_ sender: Any) {
-
     let customFrame0 = CGRect(x: 110, y: 100, width: 100, height: 100)
-
     let customView0 = SimpleUIViewWithBorder(frame: customFrame0)
-
     customView0.addBorder()
-
     self.view.addSubview(customView0)
 ```
 
@@ -349,25 +315,17 @@ class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
 
 ```
 protocol ViewWithBackground {
-
     var customBackgroundColor: UIColor { get }
-
 }
 
 extension ViewWithBackground where Self : UIView {
-
     func addBackgroundColor() -> Void {
-
         backgroundColor = customBackgroundColor
-
     }
-
 }
 
 class UIViewWithBackground : UIView, ViewWithBackground {
-
     let customBackgroundColor: UIColor = .blue
-
 }
 ```
 
@@ -375,11 +333,8 @@ class UIViewWithBackground : UIView, ViewWithBackground {
 
 ```
 let customFrame1 = CGRect(x: 110, y: 210, width: 100, height: 100)
-
 let customView1 = UIViewWithBackground(frame: customFrame1)
-
 customView1.addBackgroundColor()
-
 self.view.addSubview(customView1)
 ```
 
@@ -391,57 +346,33 @@ self.view.addSubview(customView1)
 
 ```
 protocol ViewWithBorder {
-
     var borderColor: UIColor { get }
-
     var borderThickness: CGFloat { get }
-
     init(borderColor: UIColor, borderThickness: CGFloat, frame: CGRect)
-
 }
 
 extension ViewWithBorder where Self : UIView {
-
     func addBorder() -> Void {
-
         layer.borderColor = borderColor.cgColor
-
         layer.borderWidth = borderThickness
-
     }
-
 }
 
 class UIViewWithBorder : UIView, ViewWithBorder {
-
     let borderColor: UIColor
-
     let borderThickness: CGFloat
 
-    
-
-    // This initializer is required by UIView.
-
+    // UIView 的必要初始化方法
     required init(borderColor: UIColor, borderThickness: CGFloat, frame: CGRect) {
-
         self.borderColor = borderColor
-
         self.borderThickness = borderThickness
-
         super.init(frame: frame)
-
     }
 
-    
-
-    // This initializer is required by UIView.
-
+    // UIView 的必要初始化方法
     required init?(coder aDecoder: NSCoder) {
-
         fatalError("init(coder:) has not been implemented")
-
     }
-
 }
 ```
 
@@ -449,11 +380,8 @@ class UIViewWithBorder : UIView, ViewWithBorder {
 
 ```
     let customFrame2 = CGRect(x: 110, y: 320, width: 100, height: 100)
-
     let customView2 = UIViewWithBorder(borderColor: .red, borderThickness: 10.0, frame: customFrame2)
-
     customView2.addBorder()
-
     self.view.addSubview(customView2)
 ```
 
@@ -463,11 +391,8 @@ class UIViewWithBorder : UIView, ViewWithBorder {
 
 ```
 extension UIView {
-
     func addBorder() {  ...  }
-
     func addBackgroundColor() {  ...  }
-
 }
 ```
 
@@ -483,29 +408,18 @@ extension UIView {
 protocol SimpleViewWithBorder {}
 
 extension SimpleViewWithBorder where Self : UIView {
-
     func addBorder() -> Void {
-
         layer.borderColor = UIColor.green.cgColor
-
         layer.borderWidth = 10.0
-
     }
-
 }
 
 class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
-
-    // OVERRIDE OF DEFAULT EXTENSION
-
+    // 覆盖 extension 中的默认实现
     func addBorder() -> Void {
-
         layer.borderColor = UIColor.darkGray.cgColor
-
         layer.borderWidth = 20.0
-
     }
-
 }
 ```
 
@@ -531,155 +445,89 @@ class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
 
 ```
 protocol ListSubscript {
-
     associatedtype AnyType
-
     
-
     var elements : [AnyType] { get }
-
 }
 
 extension ListSubscript {
-
     subscript(i: Int) -> Any {
-
         return elements[i]
-
     }
-
 }
 
 protocol ListPrintForwards {
-
     associatedtype AnyType
 
-    
-
     var elements : [AnyType] { get }
-
 }
 
 extension ListPrintForwards {
-
     func showList() {
-
         if elements.count > 0 {
-
             var line = ""
-
             var index = 1
 
-            
-
                         for element in elements {
-
                 line += "\(element) "
-
                 index += 1
-
             }
-
             print("\(line)\n")
-
         } else {
-
             print("EMPTY\n")
-
         }
-
     }
-
 }
 
 protocol ListPrintBackward {
-
     associatedtype AnyType
 
-    
-
     var elements : [AnyType] { get }
-
 }
 
 extension ListPrintBackwards {
-
     func showList() {
-
         if elements.count > 0 {
-
             var line = ""
-
             var index = 1
 
-                        
-
             for element in elements.reversed() {
-
                 line += "\(element) "
-
                 index += 1
-
             }
-
             print("\(line)\n")
-
         } else {
-
             print("EMPTY\n")
-
         }
-
     }
-
 }
 
 protocol ListCount {
-
     associatedtype AnyType
 
-    
-
     var elements : [AnyType] { get }
-
 }
 
 extension ListCount {
-
     func count() -> Int {
-
         return elements.count
-
     }
-
 }
 
 protocol List {
-
     associatedtype AnyType
-
-    
 
     var elements : [AnyType] { get set }
 
-    
-
     mutating func remove() -> AnyType
 
-    
-
     mutating func add(_ element: AnyType)
-
 }
 
 extension List {
-
     mutating func add(_ element: AnyType) {
-
         elements.append(element)
-
     }
-
 }
 
 protocol FIFO : List, ListCount, ListPrintForwards, ListSubscript {
@@ -687,119 +535,68 @@ protocol FIFO : List, ListCount, ListPrintForwards, ListSubscript {
 }
 
 extension FIFO {
-
     mutating func remove() -> AnyType {
-
         if elements.count > 0 {
-
             return elements.removeFirst()
-
         } else {
-
             return "******EMPTY******" as! AnyType
-
         }
-
     }
-
 }
 
 struct Queue<AnyType>: FIFO {
-
     var elements: [AnyType] = []
-
 }
 
 var queue = Queue<Any>()
-
 queue.add("Bob")
-
 queue.showList()
-
 queue.add(1)
-
 queue.showList()
-
 queue.add(3.0)
-
-_ = queue[0] // subscript gives us "Bob"
-
+_ = queue[0] // 该下标输出 "Bob"
 _ = queue.count()
-
 queue.showList()
-
 queue.remove()
-
 queue.showList()
-
 queue.remove()
-
 queue.showList()
-
 queue.remove()
-
 queue.showList()
-
 _ = queue.count()
 
 protocol LIFO : List, ListCount, ListPrintBackwards, ListSubscript {
-
 }
 
 extension LIFO {
-
     mutating func remove() -> AnyType {
-
         if elements.count > 0 {
-
             return elements.removeLast()
-
         } else {
-
             return "******EMPTY******" as! AnyType
-
         }
-
     }    
-
 }
 
 struct Stack<AnyType>: LIFO {
-
     var elements: [AnyType] = []
-
 }
 
 var stack = Stack<Any>()
-
 stack.add("Bob")
-
 stack.showList()
-
 stack.add(1)
-
 stack.showList()
-
 stack.add(3.0)
-
-_ = stack[0] // subscript gives us 3
-
+_ = stack[0] // 该下标输出 3
 _ = stack.count()
-
 stack.showList()
-
 stack.remove()
-
 stack.showList()
-
 stack.remove()
-
 stack.showList()
-
 stack.remove()
-
 stack.showList()
-
 _ = stack.count()
 ```
 
@@ -831,7 +628,7 @@ Bob
 EMPTY
 ```
 
-### 我没有100%使用 POP
+### 我没有 100% 使用 POP
 
 在 WWDC 有关 POP 的视频之一中，一位工程师/讲师说 [”在 Swift 中我们有一种说法，不要从一个类开始写代码，从一个协议开始“](https://developer.apple.com/videos/play/wwdc2015-408/?time=882)。嘛~也许吧。这家伙开始了有关如何使用协议来写一个二分查找的冗长的讨论。我有点怀疑，这是不是我许多读者印象最深的部分。看完你失眠了吗？
 
