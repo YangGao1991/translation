@@ -1,26 +1,32 @@
- title:Swift 中的面向协议编程：是否优于面向对象编程？
- date:2018/08/15
- tags:[Swift]
- categories: [appcoda]
- permalink: pop-vs-oop
- keywords:Swift
- description: 本文介绍了面向协议编程的优缺点，以及与面向对象编程的对比。
- ---
- 原文链接=https://www.appcoda.com/pop-vs-oop/
- 作者=ANDREW JAFFEE
- 原文日期=2018/03/28
- 译者=阳仔
- 校对=
- 定稿=
+title:"Swift 中的面向协议编程：是否优于面向对象编程？"
+date:2018-12-03
+tags:[Swift]
+categories: [appcoda]
+permalink: pop-vs-oop
+keywords:Swift
+description: 本文介绍了面向协议编程的优缺点，以及与面向对象编程的对比。
+
+---
+
+原文链接=https://www.appcoda.com/pop-vs-oop/
+作者=Andrew Jaffee
+原文日期=2018/03/28
+译者=阳仔
+校对=numbbbbb,Lision
+定稿=Forelax
+
+ <!--此处开始正文-->
 
 在本文中，我们将深入讨论 Swift 4 中的面向协议编程。这是一个系列两篇文章中的第二篇。如果你还没有读过 [前一篇介绍文章](https://www.appcoda.com/protocol-oriented-programming/)，请在继续阅读本文之前先阅读前一篇。
+
+<!--more-->
 
 在本文中，我们将探讨为什么 Swift 被认为是一门“面向协议”的语言；对比面向协议编程（POP）和面向对象编程（OOP）；对比“值语义”和“引用语义”；讨论 local reasoning；用协议实现代理模式；用协议代替类型；使用协议多态性；重审我的面向协议的实际代码；最终讨论为什么我没有 100% 使用 POP 编程。
 
 > 关于 WWDC 链接的一点说明
 > 在这一系列关于 POP 的两篇文章中，我至少添加了三个 Apple Worldwide Developers Conference (WWDC) 视频的链接。在 Safari 中点击这些链接将直接跳转至视频中的具体小节（并往往会从该处开始播放视频）。如果你使用的不是 Safari，则需要浏览视频，手动跳转至某一小节，或者查看该视频的文字版本。
 
-### Swift 为什么是“面向协议”的语言？
+## Swift 为什么是“面向协议”的语言？
 
 我在 [前一篇 POP 介绍文章](https://www.appcoda.com/protocol-oriented-programming/) 中，提到 Apple 声称”从核心上说，Swift 是面向协议的”。相信我，确实是这样的。为什么呢？在回答这个问题之前，让我们先来比较几种编程语言。
 
@@ -51,7 +57,7 @@ Swift 中的协议有其他语言都不支持的特点：[协议扩展](https://
 
 ![](https://www.appcoda.com/wp-content/uploads/2018/03/UIButton-Inheritance.png)
 
-### POP 和 OOP
+## POP 和 OOP
 
 OOP 的优点已经被开发者们讨论得很多了，所以在这里我只想简单列举一下。如果想了解详尽的内容，可以参考 [我写的这篇有关 OOP 在 Swift 中的实现的具体介绍](http://iosbrain.com/blog/2017/02/26/intro-to-object-oriented-principles-in-swift-3-via-a-message-box-class-hierarchy/)。
 
@@ -81,7 +87,7 @@ OOP 的优点包括可重用性，继承，可维护性，对复杂性的隐藏�
 
 Local reasoning 对这两种情况都不适用，因为个体和关系太多了。
 
-### 值语义 vs. 引用语义
+## 值语义 vs. 引用语义
 
 正如我上一篇文章所提到的，Apple 正在大力推广 POP 和值语义的相关概念（他们还正在推广另一个与 POP 相关的范式，下文会讲到）。上一次，我向你们展示了代码，这次依然会用代码来明确展示“引用语义”和“值语义”的不同意义。请参阅我 [上一周的文章](https://www.appcoda.com/protocol-oriented-programming/) 中的 `ObjectThatFlies` 协议，以及今天文章中的 `List`，`FIFO`，`LIFO` 以及相关协议。
 
@@ -99,7 +105,7 @@ Apple 工程师 Alex 说我们 [“应当使用值类型和协议来让应用变
 
 因为 Swift 中的 `struct` 是一种值类型，并且能够遵循协议，苹果也在大力推进 POP 以取代 OOP，在 [面向协议和值编程](https://developer.apple.com/videos/play/wwdc2016/419/) 你可以找到这背后的原因。
 
-### Local reasoning
+## Local reasoning
 
 让我们探讨一个很棒的主题，Apple 称之为 [“Local reasoning”](https://developer.apple.com/videos/play/wwdc2016-419/?time=41)。这是由 Apple 一位叫 Alex 的工程师在 WWDC 2016 - Session 419，“UIKit 应用中的面向协议和值编程”中提出的。这也是 Apple 与 POP 同时大力推动的概念。
 
@@ -112,7 +118,7 @@ Apple 工程师 Alex 说我们 [“应当使用值类型和协议来让应用变
 
 Swift 语言的源代码是开源的。请快速浏览一遍 [下列函数](https://github.com/apple/swift/blob/master/stdlib/public/SDK/Foundation/NSFastEnumeration.swift)，也不要花上三个小时去试图理解它：
 
-```
+```swift
 public mutating func next() -> Any? {
     if index + 1 > count {
         index = 0
@@ -169,24 +175,37 @@ public mutating func next() -> Any? {
 
 在你浏览过一遍之后，说实话，你能理解这段代码吗？我并没有。我不得不花些时间多读几遍，并查阅函数定义之类的代码。以我的经验，这种代码是普遍存在的，并且不可避免需要经常修补的。
 
-现在，让我们考虑理解一种 Swift 类型（不是一个函数）。查看 Swift 中的 `Array` 的 [定义](http://swiftdoc.org/v3.1/type/Array/)。我的天，它继承了11个协议，`BidirectionalCollection`，`Collection`，`CustomDebugStringConvertible`，`CustomReflectable`，`CustomStringConvertible`，`ExpressibleByArrayLiteral`，`MutableCollection`，`RandomAccessCollection`，`RangeReplaceableCollection`，`Sequence`。点击下方的“VIEW PROTOCOL HIERARCHY ->”链接按钮——天哪，[看这一坨面条一样的线条](http://swiftdoc.org/v3.1/type/Array/hierarchy/)！
+现在，让我们考虑理解一种 Swift 类型（不是一个函数）。查看 Swift 中的 `Array` 的 [定义](http://swiftdoc.org/v3.1/type/Array/)。我的天，它继承了 10 个协议：
+
+- `BidirectionalCollection`
+- `Collection`
+- `CustomDebugStringConvertible`
+- `CustomReflectable`
+- `CustomStringConvertible`
+- `ExpressibleByArrayLiteral`
+- `MutableCollection`
+- `RandomAccessCollection`
+- `RangeReplaceableCollection`
+- `Sequence`
+
+点击下方的“VIEW PROTOCOL HIERARCHY ->”链接按钮——天哪，[看这一坨面条一样的线条](http://swiftdoc.org/v3.1/type/Array/hierarchy/)！
 
 如果你是在开发一个新项目，并且整个团队能够遵循一套最佳开发指导方案的话，要做到 Local reasoning 会容易很多。少量代码的重构也是做到 local reasoning 的较好的机会。对我来说，像其他大部分事情一样，代码的重构需要慎重和仔细，要做到适度。
 
 牢记：你几乎一直要面对非常复杂的业务逻辑，这些逻辑如果写成代码，并且要让一个团队新人流畅读懂，需要他/她接收一些业务知识的训练和指导。他/她很可能需要查找一些函数、类、结构体、枚举值、变量的定义。
 
-### 代理和协议
+## 代理和协议
 
 代理模式是 iOS 中广泛使用的模式，其中一个必需的组成部分就是协议。在这里我们不需要再去重复。你可以阅读我有关该主题的 AppCoda [博客](https://www.appcoda.com/swift-delegate/)。
 
-### 协议类型以及协议多态性
+## 协议类型以及协议多态性
 
 在这些主题上我不准备花太多时间。我已经讲过很多有关协议的知识，并向你展示了大量代码。作为任务，我想让你自己研究一下，Swift 协议类型（就像在代理中一样）的重要性，它们能给我们带来的灵活性，以及它们所展示的多态性。
 
 *协议类型*
 在我 [关于代理的文章](https://www.appcoda.com/swift-delegate/) 中，我定义了一个属性：
 
-```
+```swift
 var delegate: LogoDownloaderDelegate?
 ```
 
@@ -195,7 +214,7 @@ var delegate: LogoDownloaderDelegate?
 *协议多态性*
 正如在面向对象中一样，我们可以通过遵循父协议的数据类型，来与多种遵循同一个协议族的子协议的数据类型进行交互。用代码举例来说明：
 
-```
+```swift
 protocol Top {
     var protocolName: String { get }
 }
@@ -260,7 +279,7 @@ MiddleStruct(protocolName: "MiddleStruct")
 BottomStruct(protocolName: "BottomStruct")
 ```
 
-### 真实的 UIKit 应用中的协议
+## 真实的 UIKit 应用中的协议
 
 现在，让我们来看一些实质性的东西，写一些 Swift 4 的代码——这些代码是在我自己的应用中真实使用的。这些代码应当能使你开始思考用协议来构建和/或拓展你的代码。这也就是我在这两篇文章中一直在描述的，“面向协议编程”，或者 POP。
 
@@ -278,11 +297,11 @@ BottomStruct(protocolName: "BottomStruct")
 
 注意，这里我也遵守了 ”Local reasoning“ 的原则。我每一个基于协议的函数都控制在一屏幕之内。我希望你能阅读每一个函数，因为它们并没有太多代码量，但却很有效。
 
-### 为 UIView 添加一个默认的边框
+## 为 UIView 添加一个默认的边框
 
 假设我希望获得很多拥有相同边框的 `UIView` 实例——例如在一个支持颜色主题的应用中那样。一个这样的例子就是上面那张图片中，最上面那个绿色的视图。
 
-```
+```swift
 protocol SimpleViewWithBorder {}
 
 // 安全的："addBorder" 方法只会被添加到 UIView 的实例。
@@ -299,7 +318,7 @@ class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
 
 要创建、配置、显示一个 `SimpleUIViewWithBorder` 的实例，我在我的 `ViewController` 子类中的 `IBAction` 中写了如下代码：
 
-```
+```swift
 @IBAction func addViewButtonTapped(_ sender: Any) {
     let customFrame0 = CGRect(x: 110, y: 100, width: 100, height: 100)
     let customView0 = SimpleUIViewWithBorder(frame: customFrame0)
@@ -309,11 +328,11 @@ class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
 
 我不需要为这个 `UIView` 的子类去创建一个特殊的初始化方法。
 
-### 为 UIView 添加一个默认的背景色
+## 为 UIView 添加一个默认的背景色
 
 假设我希望很多 `UIView` 的实例都有相同的背景色。一个这样的例子是上图中，中间的蓝色视图。注意，我向可配置的 `UIView` 又更进了一步。
 
-```
+```swift
 protocol ViewWithBackground {
     var customBackgroundColor: UIColor { get }
 }
@@ -331,7 +350,7 @@ class UIViewWithBackground : UIView, ViewWithBackground {
 
 要创建、配置、展示一个 `UIViewWithBackground` 的实例，我在我的 `ViewController` 子类中的 `IBAction` 中写了如下代码：
 
-```
+```swift
 let customFrame1 = CGRect(x: 110, y: 210, width: 100, height: 100)
 let customView1 = UIViewWithBackground(frame: customFrame1)
 customView1.addBackgroundColor()
@@ -340,11 +359,11 @@ self.view.addSubview(customView1)
 
 我不需要为这个 `UIView` 的子类去创建一个特殊的初始化方法。
 
-### 为 UIView 添加一个可配置的边框颜色
+## 为 UIView 添加一个可配置的边框颜色
 
 现在，我希望能够配置 `UIView` 边框的颜色和宽度。用下列实现代码，我可以随意创建不同边框颜色、宽度的视图。这样的一个例子是上图中，最下面的红色视图。向我的协议中去添加可配置的属性有一点代价，我需要能够初始化这些属性，因此，我为我的协议添加了一个 `init` 方法。这意味着，我也可以调用 `UIView` 的初始化方法。读完代码，你就会明白：
 
-```
+```swift
 protocol ViewWithBorder {
     var borderColor: UIColor { get }
     var borderThickness: CGFloat { get }
@@ -378,18 +397,18 @@ class UIViewWithBorder : UIView, ViewWithBorder {
 
 要创建、配置、显示一个 `UIViewWithBorder` 的实例，我在我的 `ViewController` 子类中的 `IBAction` 中写了如下代码：
 
-```
+```swift
     let customFrame2 = CGRect(x: 110, y: 320, width: 100, height: 100)
     let customView2 = UIViewWithBorder(borderColor: .red, borderThickness: 10.0, frame: customFrame2)
     customView2.addBorder()
     self.view.addSubview(customView2)
 ```
 
-### 我不想做的事
+## 我不想做的事
 
 我不想去创建像这样的代码：
 
-```
+```swift
 extension UIView {
     func addBorder() {  ...  }
     func addBackgroundColor() {  ...  }
@@ -400,11 +419,11 @@ extension UIView {
 
 在上述所有基于 `UIKit` 的协议中，我都使用了 `UIView` 的子类——引用类型。子类化能够让我能直接访问父类 `UIView` 中的任何内容，让我的代码清晰、简短、易读。如果我使用的是 `struct`，我的代码会变得更加冗长，至于为什么，留给你们当做练习。
 
-### 我做的事情
+## 我做的事情
 
 时刻记住，所有这些默认协议 `extensions` 可以在类扩展中覆盖。用一个例子和图片来解释：
 
-```
+```swift
 protocol SimpleViewWithBorder {}
 
 extension SimpleViewWithBorder where Self : UIView {
@@ -427,7 +446,7 @@ class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
 
 ![](https://www.appcoda.com/wp-content/uploads/2018/03/Override-Extended-UIView.gif)
 
-### 真实的，基于协议的泛型数据结构
+## 真实的，基于协议的泛型数据结构
 
 我非常骄傲在我自己的应用中，我能够写尽量少的 POP 代码，来创建完整功能的泛型的栈和队列的数据结构。想了解有关 Swift 中的泛型，请阅读我 AppCoda 中的 [文章](https://appcoda.com/swift-generics/)。
 
@@ -443,7 +462,7 @@ class SimpleUIViewWithBorder : UIView, SimpleViewWithBorder {
 
 代码如下：
 
-```
+```swift
 protocol ListSubscript {
     associatedtype AnyType
     
@@ -628,7 +647,7 @@ Bob
 EMPTY
 ```
 
-### 我没有 100% 使用 POP
+## 我没有 100% 使用 POP
 
 在 WWDC 有关 POP 的视频之一中，一位工程师/讲师说 [”在 Swift 中我们有一种说法，不要从一个类开始写代码，从一个协议开始“](https://developer.apple.com/videos/play/wwdc2015-408/?time=882)。嘛~也许吧。这家伙开始了有关如何使用协议来写一个二分查找的冗长的讨论。我有点怀疑，这是不是我许多读者印象最深的部分。看完你失眠了吗？
 
@@ -638,7 +657,7 @@ EMPTY
 
 我觉得没有任何理由只用 POP 进行编程。我认为 POP 和我使用的其他许多技术，甚至是 OOP 一样，都有一些问题。我们是在对现实建模，或者至少说，我们是在对现实进行拟合。没有完美的解决方案。所以，将 POP 作为你的开发工具箱中的一种吧，就像人们长年以来总结出的其他优秀的方案一样。
 
-### 结论
+## 结论
 
 30 年的开发经验，让我能够平心静气地说，**你应该了解协议和 POP。**开始设计并书写你自己的 POP 代码吧。
 
